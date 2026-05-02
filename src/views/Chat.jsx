@@ -15,21 +15,40 @@ const Chat = () => {
     exit: { opacity: 0, x: -20, transition: { duration: 0.3 } }
   };
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const formatTime = (isoString) => {
+    if (!isoString) return '';
+    return new Date(isoString).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [chatMessages, isTyping]);
+  const formatDateHeader = (isoString) => {
+    const date = new Date(isoString);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) return 'Today';
+    if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
 
   const handleSend = async () => {
     if (!input.trim()) return;
 
+    const timestamp = new Date().toISOString();
     const userMessage = {
       id: Date.now(),
       sender: 'user',
-      text: input
+      text: input,
+      timestamp
     };
 
     setChatMessages(prev => [...prev, userMessage]);
@@ -81,7 +100,8 @@ const Chat = () => {
           id: Date.now() + 1,
           sender: 'ai',
           text: aiResponseText,
-          validationNote
+          validationNote,
+          timestamp: new Date().toISOString()
         };
         setChatMessages(prev => [...prev, aiMessage]);
         setIsTyping(false);
@@ -119,7 +139,13 @@ const Chat = () => {
         const data = await response.json();
         const geminiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "I am here to listen and support you. Could you tell me more about what happened or how you are feeling?";
 
-        const aiMessage = { id: Date.now() + 1, sender: 'ai', text: geminiText, validationNote: null };
+        const aiMessage = { 
+          id: Date.now() + 1, 
+          sender: 'ai', 
+          text: geminiText, 
+          validationNote: null,
+          timestamp: new Date().toISOString()
+        };
         setChatMessages(prev => [...prev, aiMessage]);
         setIsTyping(false);
 
@@ -129,7 +155,8 @@ const Chat = () => {
           id: Date.now() + 1,
           sender: 'ai',
           text: "I am here to listen and support you. Could you tell me more about what happened or how you are feeling? (Note: Please set VITE_GEMINI_API_KEY in your .env file to enable full AI responses).",
-          validationNote: null
+          validationNote: null,
+          timestamp: new Date().toISOString()
         };
         setChatMessages(prev => [...prev, aiMessage]);
         setIsTyping(false);
@@ -143,6 +170,46 @@ const Chat = () => {
     }
   };
 
+  // Helper to render messages with date headers
+  const renderMessages = () => {
+    let lastDate = null;
+    
+    return chatMessages.map((msg, index) => {
+      const messageDate = new Date(msg.timestamp || Date.now()).toDateString();
+      const showDateHeader = messageDate !== lastDate;
+      lastDate = messageDate;
+
+      return (
+        <React.Fragment key={msg.id}>
+          {showDateHeader && (
+            <div className="date-separator">
+              <span>{formatDateHeader(msg.timestamp || Date.now())}</span>
+            </div>
+          )}
+          <div className={`message ${msg.sender}`}>
+            <div className={`avatar ${msg.sender}`}>
+              {msg.sender === 'ai' ? <Shield size={20} /> : <User size={20} />}
+            </div>
+            <div className="message-content-wrapper">
+              <div className="message-bubble">
+                {msg.text}
+              </div>
+              <div className="message-timestamp">
+                {formatTime(msg.timestamp)}
+              </div>
+              {msg.validationNote && (
+                <div className="validation-note">
+                  <h4>{msg.validationNote.title}</h4>
+                  <p>{msg.validationNote.text}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </React.Fragment>
+      );
+    });
+  };
+
   return (
     <motion.div
       className="view-content"
@@ -153,24 +220,7 @@ const Chat = () => {
     >
       <div className="chat-container">
         <div className="chat-messages">
-          {chatMessages.map((msg) => (
-            <div key={msg.id} className={`message ${msg.sender}`}>
-              <div className={`avatar ${msg.sender}`}>
-                {msg.sender === 'ai' ? <Shield size={20} /> : <User size={20} />}
-              </div>
-              <div>
-                <div className="message-bubble">
-                  {msg.text}
-                </div>
-                {msg.validationNote && (
-                  <div className="validation-note">
-                    <h4>{msg.validationNote.title}</h4>
-                    <p>{msg.validationNote.text}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+          {renderMessages()}
           {isTyping && (
             <div className="message ai">
               <div className="avatar ai">
@@ -216,3 +266,4 @@ const Chat = () => {
 };
 
 export default Chat;
+

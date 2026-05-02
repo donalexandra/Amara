@@ -359,6 +359,59 @@ a {
   font-size: 15px;
   line-height: 1.5;
   color: var(--text-dark);
+  position: relative;
+}
+
+.message-content-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.message-timestamp {
+  font-size: 10px;
+  color: var(--text-light);
+  margin-top: 4px;
+  padding: 0 4px;
+}
+
+.message.user .message-timestamp {
+  align-self: flex-end;
+}
+
+.message.ai .message-timestamp {
+  align-self: flex-start;
+}
+
+.date-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 24px 0;
+  position: relative;
+}
+
+.date-separator::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: var(--border-color);
+  z-index: 1;
+}
+
+.date-separator span {
+  background-color: var(--bg-color);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  z-index: 2;
+  border: 1px solid var(--border-color);
 }
 
 .message.user .message-bubble {

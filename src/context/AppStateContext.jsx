@@ -4,7 +4,8 @@ const initialMessages = [
   {
     id: 1,
     sender: 'ai',
-    text: "Hello. I'm Amara. This is a safe space. You can talk to me about anything you're experiencing, and I'll do my best to provide clarity and support. Everything here is private. How can I help you today?"
+    text: "Hello. I'm Amara. This is a safe space. You can talk to me about anything you're experiencing, and I'll do my best to provide clarity and support. Everything here is private. How can I help you today?",
+    timestamp: new Date().toISOString()
   }
 ];
 
@@ -81,7 +82,7 @@ export const AppStateProvider = ({ children }) => {
     localStorage.removeItem('amara_chat_messages');
     sessionStorage.clear();
     setEntries([]);
-    setChatMessages(initialMessages);
+    setChatMessages(initialMessages.map(msg => ({ ...msg, timestamp: new Date().toISOString() })));
     setEditingEntry(null);
     window.location.href = 'https://www.google.com/weather';
   };
